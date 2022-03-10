@@ -1,0 +1,54 @@
+#启动端口
+server:
+  port: 8082
+
+#资源配置
+spring:
+  profiles:
+    active: dev
+  application:
+    #当前应用名称
+    name: redis-webui
+  task:
+     scheduling:
+        thread-name-prefix: spring-task-
+        pool:
+           size: 10
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/nimo?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: 123456
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      min-idle: 3
+      max-active: 50
+      initial-size: 3
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      validation-query:  SELECT 'z'
+      test-on-borrow: false
+      test-while-idle: true
+      test-on-return: false
+      min-evictable-idle-time-millis: 300000
+      name: ${spring.application.name}
+  jpa:
+     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+     show-sql: true
+     open-in-view: false
+     hibernate:
+      ddl-auto: update
+  freemarker:
+    request-context-attribute: req  #req访问request
+    suffix: .ftl  #后缀名
+    content-type: text/html
+    enabled: true
+    cache: false #缓存配置
+    template-loader-path: classpath:/view/ #模板加载路径 按需配置
+    charset: UTF-8 #编码格式
+    settings:
+      number_format: '0.##'   #数字格式化，无小数点
+    check-template-location: true
+
+
+
