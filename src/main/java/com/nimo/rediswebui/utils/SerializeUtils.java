@@ -72,28 +72,12 @@ public class SerializeUtils {
 		try {
 			return new SerializingConverter().convert(key);
 		} catch (Exception e) {
-
 			e.printStackTrace();
 		}
 		return null;
 	}
 
 
-	public static String  test(byte[] source) {
-		try {
-			ByteArrayInputStream bis = new ByteArrayInputStream(source);
-			StringBuffer sb=new StringBuffer();
-			int temp = 0;
-			while((temp = bis.read())!=-1){
-				sb.append(temp);
-			}
-			return sb.toString();
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-
-		return null;
-	}
 
 	public static String byteToHex(byte[] bytes){
 		String strHex = "";
@@ -159,14 +143,28 @@ public class SerializeUtils {
 		return new String(bytes);
 	}
 
+
+	public static String test(byte buf[]) {
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < buf.length; i++) {
+			int byteAscii1 = (int) buf[i];
+//			System.out.println(byteAscii1);
+			System.out.println(Integer.toHexString(buf[i] & 0xFF));
+			System.out.println(Integer.toUnsignedString(buf[i] & 0xFF));
+			char ch1 = (char)byteAscii1;
+			sb.append(ch1);
+		}
+		return sb.toString();
+	}
+
+
 	public static void main(String[] args) throws UnsupportedEncodingException {
 		String key="sscc";
 		byte[] s=SerializeUtils.serialize(key);
 
 
-		System.out.println(SerializeUtils.parseByte2HexStr(s));
-		System.out.println(SerializeUtils.hexStr2Str(new String(s)));
-//		System.out.println(SerializeUtils.hex2Str(SerializeUtils.str2Hex(s)));
+		System.out.println(SerializeUtils.test(s));
+
 	}
 
 

@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.nimo.rediswebui.entity.redis.RedisResult;
 import com.nimo.rediswebui.utils.SerializeUtils;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -118,13 +119,8 @@ public class RedisConncet {
 	 *@return
 	 */
 	public long dbsize() {
-		try {
-			Jedis jedis = getJedis();
-			return jedis.dbSize();
-		} catch (Exception e) {
-			//log.log(e);
-		}
-		return 0;
+		Jedis jedis = getJedis();
+		return jedis.dbSize();
 	}
 	/***
 	 * 是否存在
@@ -132,12 +128,7 @@ public class RedisConncet {
 	 *@return
 	 */
 	public boolean exists(String key) {
-		try {
-			return getJedis().exists(key);
-		} catch (Exception e) {
-			//log.log(e);
-		}
-		return false;
+		return getJedis().exists(key);
 	}
 
 	/***
@@ -152,21 +143,16 @@ public class RedisConncet {
 		if(StrUtil.isBlank(pattern)) {
 			pattern="*";
 		}
-		try {
-			Jedis jedis = getJedis();
-			String cursor= ScanParams.SCAN_POINTER_START;
-			ScanParams scanParams = new ScanParams().count(count).match(pattern);
-			while (true) {
-				ScanResult<String> result=jedis.scan(cursor, scanParams);
-				cursor=result.getCursor();
-				list.addAll(result.getResult());
-				if(ScanParams.SCAN_POINTER_START.equals(cursor)){
-					break;
-				}
+		Jedis jedis = getJedis();
+		String cursor= ScanParams.SCAN_POINTER_START;
+		ScanParams scanParams = new ScanParams().count(count).match(pattern);
+		while (true) {
+			ScanResult<String> result=jedis.scan(cursor, scanParams);
+			cursor=result.getCursor();
+			list.addAll(result.getResult());
+			if(ScanParams.SCAN_POINTER_START.equals(cursor)){
+				break;
 			}
-			return list;
-		} catch (Exception e) {
-			//log.log(e);
 		}
 		return list;
 	}
@@ -185,37 +171,31 @@ public class RedisConncet {
 			pattern="*";
 		}
 		List<String> keys=new ArrayList<>(size);
-		try {
-			List<byte[]> templist=new ArrayList<>(size);
-			Jedis jedis = getJedis();
-			if(StrUtil.isBlank(cursor)) {
-				cursor=ScanParams.SCAN_POINTER_START;
+		List<byte[]> templist=new ArrayList<>(size);
+		Jedis jedis = getJedis();
+		if(StrUtil.isBlank(cursor)) {
+			cursor=ScanParams.SCAN_POINTER_START;
+		}
+		int count=size;
+		while (true) {
+			count=size-templist.size();
+			ScanParams scanParams = new ScanParams().count(count).match(pattern);
+			ScanResult<byte[]> result=jedis.scan(cursor.getBytes(), scanParams);
+			cursor=result.getCursor();
+			templist.addAll(result.getResult());
+			if(templist.size()>=size||ScanParams.SCAN_POINTER_START.equals(cursor)){
+				break;
 			}
-			int count=size;
-			while (true) {
-				count=size-templist.size();
-				ScanParams scanParams = new ScanParams().count(count).match(pattern);
-				ScanResult<byte[]> result=jedis.scan(cursor.getBytes(), scanParams);
-				cursor=result.getCursor();
-				templist.addAll(result.getResult());
-				if(templist.size()>=size||ScanParams.SCAN_POINTER_START.equals(cursor)){
-					break;
-				}
+		}
+		if(templist.size()>0){
+			for (byte[] s : templist) {
+				keys.add(SerializeUtils.unserialize(s).toString());
 			}
-			log.info("templist {}",templist.size());
-			if(templist.size()>0){
-				for (byte[] s : templist) {
-					keys.add(SerializeUtils.unserialize(s).toString());
-				}
-			}
-			data.setKeys(keys);
-			data.setCursor(cursor);
-			return data;
-		} catch (Exception e) {
-			e.printStackTrace();
+		}else{
+			cursor=ScanParams.SCAN_POINTER_START;
 		}
 		data.setKeys(keys);
-		data.setCursor(ScanParams.SCAN_POINTER_START);
+		data.setCursor(cursor);
 		return data;
 	}
 
@@ -232,28 +212,24 @@ public class RedisConncet {
 			pattern="*";
 		}
 		List<String> member=new ArrayList<>(size);
-		try {
-			Jedis jedis = getJedis();
-			if(StrUtil.isBlank(cursor)) {
-				cursor=ScanParams.SCAN_POINTER_START;
+		Jedis jedis = getJedis();
+		if(StrUtil.isBlank(cursor)) {
+			cursor=ScanParams.SCAN_POINTER_START;
+		}
+		ScanParams scanParams = new ScanParams().count(size).match(pattern);
+		while (true) {
+			ScanResult<String> result=jedis.sscan(key, cursor,scanParams);
+			cursor=result.getCursor();
+			member.addAll(result.getResult());
+			if(ScanParams.SCAN_POINTER_START.equals(cursor)){
+				break;
 			}
-			ScanParams scanParams = new ScanParams().count(size).match(pattern);
-			while (true) {
-				ScanResult<String> result=jedis.sscan(key, cursor,scanParams);
-				cursor=result.getCursor();
-				member.addAll(result.getResult());
-				if(ScanParams.SCAN_POINTER_START.equals(cursor)){
-					break;
-				}
-			}
-			data.setKeys(member);
-			data.setCursor(cursor);
-			return data;
-		} catch (Exception e) {
-			e.printStackTrace();
+		}
+		if(member.size()==0){
+			data.setCursor(ScanParams.SCAN_POINTER_START);
 		}
 		data.setKeys(member);
-		data.setCursor(ScanParams.SCAN_POINTER_START);
+		data.setCursor(cursor);
 		return data;
 	}
 
@@ -272,31 +248,26 @@ public class RedisConncet {
 			pattern="*";
 		}
 		List<Tuple> templist=new ArrayList<>(size);
-		try {
-			Jedis jedis = getJedis();
-			if(StrUtil.isBlank(cursor)) {
-				cursor=ScanParams.SCAN_POINTER_START;
+		Jedis jedis = getJedis();
+		if(StrUtil.isBlank(cursor)) {
+			cursor=ScanParams.SCAN_POINTER_START;
+		}
+		int count=size;
+		while (true) {
+			count=size-templist.size();
+			ScanParams scanParams = new ScanParams().count(count).match(pattern);
+			ScanResult<Tuple> result=jedis.zscan(key, cursor, scanParams);
+			cursor=result.getCursor();
+			templist.addAll(result.getResult());
+			if(templist.size()>=size||ScanParams.SCAN_POINTER_START.equals(cursor)){
+				break;
 			}
-			int count=size;
-			while (true) {
-				count=size-templist.size();
-				ScanParams scanParams = new ScanParams().count(count).match(pattern);
-				log.info("size:{} count:{},pattern:{} cursor:{}",templist.size(), count,pattern,cursor);
-				ScanResult<Tuple> result=jedis.zscan(key, cursor, scanParams);
-				cursor=result.getCursor();
-				templist.addAll(result.getResult());
-				if(templist.size()>=size||ScanParams.SCAN_POINTER_START.equals(cursor)){
-					break;
-				}
-			}
-			data.setKeys(templist);
-			data.setCursor(cursor);
-			return data;
-		} catch (Exception e) {
-			e.printStackTrace();
+		}
+		if(templist.size()==0){
+			cursor=ScanParams.SCAN_POINTER_START;
 		}
 		data.setKeys(templist);
-		data.setCursor(ScanParams.SCAN_POINTER_START);
+		data.setCursor(cursor);
 		return data;
 	}
 
@@ -313,31 +284,26 @@ public class RedisConncet {
 			pattern="*";
 		}
 		List<Entry<String, String>> templist=new ArrayList<>(size);
-		try {
-			Jedis jedis = getJedis();
-			if(StrUtil.isBlank(cursor)) {
-				cursor=ScanParams.SCAN_POINTER_START;
+		Jedis jedis = getJedis();
+		if(StrUtil.isBlank(cursor)) {
+			cursor=ScanParams.SCAN_POINTER_START;
+		}
+		int count=size;
+		while (true) {
+			count=size-templist.size();
+			ScanParams scanParams = new ScanParams().count(count).match(pattern);
+			ScanResult<Entry<String, String>> result=jedis.hscan(key, cursor, scanParams);
+			templist.addAll(result.getResult());
+			cursor=result.getCursor();
+			if(templist.size()>=size||ScanParams.SCAN_POINTER_START.equals(cursor)){
+				break;
 			}
-			int count=size;
-			while (true) {
-				count=size-templist.size();
-				ScanParams scanParams = new ScanParams().count(count).match(pattern);
-				log.info("size:{} count:{},pattern:{} cursor:{}",templist.size(), count,pattern,cursor);
-				ScanResult<Entry<String, String>> result=jedis.hscan(key, cursor, scanParams);
-				templist.addAll(result.getResult());
-				cursor=result.getCursor();
-				if(templist.size()>=size||ScanParams.SCAN_POINTER_START.equals(cursor)){
-					break;
-				}
-			}
-			data.setKeys(templist);
-			data.setCursor(cursor);
-			return data;
-		} catch (Exception e) {
-			//log.log(e);
+		}
+		if(templist.size()==0){
+			cursor=ScanParams.SCAN_POINTER_START;
 		}
 		data.setKeys(templist);
-		data.setCursor(ScanParams.SCAN_POINTER_START);
+		data.setCursor(cursor);
 		return data;
 	}
 
@@ -379,15 +345,10 @@ public class RedisConncet {
 	public Long zadd(String key, long score, String member, long expire) {
 		Jedis	jedis = getJedis();
 		Long result= null;
-		try {
-			jedis = getJedis();
-			result= jedis.zadd(key, score, member);
-			if (expire > 0) {
-				jedis.expire(key, expire);
-			}
-			return result;
-		} catch (Exception e) {
-			//log.log(e);
+		jedis = getJedis();
+		result= jedis.zadd(key, score, member);
+		if (expire > 0) {
+			jedis.expire(key, expire);
 		}
 		return result;
 	}
@@ -400,39 +361,36 @@ public class RedisConncet {
 	 * @param field
 	 * @param value
 	 */
-	public void hset(String key, String field, String value,long expire) {
+	public long hset(String key, String field, String value,long expire) {
 		Jedis	jedis = getJedis();
-		try {
-			jedis = getJedis();
-			jedis.hset(key, field, value);
-			if (expire > 0)
-				jedis.expire(key, expire);
-		} catch (Exception e) {
-			//log.log(e);
+		jedis = getJedis();
+		Long result= null;
+		result =jedis.hset(key, field, value);
+		if (expire > 0) {
+			jedis.expire(key, expire);
 		}
+		return result;
 	}
 
 
-	public void lpush(String key, String value, long expire) {
+	public long lpush(String key, String value, long expire) {
 		Jedis	jedis = getJedis();
-		try {
-			jedis.lpush(key, value);
-			if (expire > 0)
-				jedis.expire(key, expire);
-		} catch (Exception e) {
-			//log.log(e);
+		Long result= null;
+		result=jedis.lpush(key, value);
+		if (expire > 0) {
+			jedis.expire(key, expire);
 		}
+		return result;
 	}
 
-	public void rpush(String key, String value, long expire) {
+	public long rpush(String key, String value, long expire) {
 		Jedis	jedis = getJedis();
-		try {
-			jedis.rpush(key, value);
-			if (expire > 0)
-				jedis.expire(key, expire);
-		} catch (Exception e) {
-			//log.log(e);
+		Long result= null;
+		result=jedis.rpush(key, value);
+		if (expire > 0) {
+			jedis.expire(key, expire);
 		}
+		return result;
 	}
 
 
