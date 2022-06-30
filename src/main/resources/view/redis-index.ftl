@@ -111,63 +111,161 @@
 				</div>
 		</div>
 	</div>
-	<div class="twelve wide column">
-			<div class="ui segment">
-				<div class="ui top attached tabular menu" id="keybanner">
-						<a class="item active">
-							新建KEY
-						</a>
-				</div>
-				<div class="ui bottom attached segment" id="keyvaluebox">
-					<div  class="tablebox" >
-							<form class="content ui form " id="taskform">
-								<div class="field">
-									<label>Key:</label>
-									<div class="ui input ">
-										<input id="keyname" name="keyname" type="text" placeholder="KeyName">
-									</div>
-								</div>
-								<div class="field">
-									<label>类型:</label>
-									<div class="ui input ">
-										  <select id="keytype" name="keytype" class="ui  dropdown"> 
-											  <option value="string">String</option>
-											  <option value="set">Set</option>
-											  <option value="zset">SortSet</option>
-											  <option value="hash">Hash</option>
-											  <option value="list">List</option>
-											</select>
-									</div>
-								</div>
-								<div class="field">
-									<label>Member:</label>
-									<div class="ui input ">
-										<input id="member"name="member" type="text" placeholder="Member">
-									</div>
-								</div>
-								<div class="field">
-									<label>Value:</label>
-									<div class="ui input ">
-										<input id="keyvalue" name="keyvalue" type="text" placeholder="keyValue">
-									</div>
-								</div>
-								<div class="field">
-									<label>TTL:</label>
-									<div class="ui input ">
-										<input id="ttl"name="ttl" type="text" placeholder="过期时间(s)">
-									</div>
-								</div>
-								 <div class="ui error message">
-									<p id="addtips"></p>
-								  </div>
-							</form>
-						<div class="ui " style="text-align: left;">
-							<div class="ui button  blue"  id="addkey" >添加</div>
+	<div class="ui twelve wide column  grid">
+		<div class="ten wide column">
+		<div class="ui segment">
+			<div class="ui top attached tabular menu" id="keybanner">
+				<a class="item active">
+					新建KEY
+				</a>
+			</div>
+			<div class="ui bottom attached segment" id="keyvaluebox">
+				<div  class="tablebox" >
+					<form class="content ui form " id="taskform">
+						<div class="field">
+							<label>Key:</label>
+							<div class="ui input ">
+								<input id="keyname" name="keyname" type="text" placeholder="KeyName">
+							</div>
 						</div>
+						<div class="field">
+							<label>类型:</label>
+							<div class="ui input ">
+								<select id="keytype" name="keytype" class="ui  dropdown">
+									<option value="string">String</option>
+									<option value="set">Set</option>
+									<option value="zset">SortSet</option>
+									<option value="hash">Hash</option>
+									<option value="list">List</option>
+								</select>
+							</div>
+						</div>
+						<div class="field">
+							<label>Member:</label>
+							<div class="ui input ">
+								<input id="member"name="member" type="text" placeholder="Member">
+							</div>
+						</div>
+						<div class="field">
+							<label>Value:</label>
+							<div class="ui input ">
+								<input id="keyvalue" name="keyvalue" type="text" placeholder="keyValue">
+							</div>
+						</div>
+						<div class="field">
+							<label>TTL:</label>
+							<div class="ui input ">
+								<input id="ttl"name="ttl" type="text" placeholder="过期时间(s)">
+							</div>
+						</div>
+						<div class="ui error message">
+							<p id="addtips"></p>
+						</div>
+					</form>
+					<div class="ui " style="text-align: left;">
+						<div class="ui button  blue"  id="addkey" >添加</div>
 					</div>
 				</div>
 			</div>
+		</div>
+		</div>
+
+		<div class="five wide column">
+			<div class="ui segment">
+				<div class="ui bottom attached" >
+					<h4 class="ui horizontal divider header">
+						服务
+					</h4>
+					<table class="ui definition table">
+						<tbody>
+						<tr>
+							<td class="five wide column">版本</td>
+							<td id="version">-</td>
+						</tr>
+						<tr>
+							<td>模式</td>
+							<td id="mode">-</td>
+						</tr>
+						<tr>
+							<td>OS</td>
+							<td id="os">-</td>
+						</tr>
+						<tr>
+							<td>上线时长</td>
+							<td id="uptime">-</td>
+						</tr>
+						<tr>
+							<td>系统内存</td>
+							<td id="systemMemory">-</td>
+						</tr>
+						</tbody>
+					</table>
+					<h4 class="ui horizontal divider header">
+						客户端
+					</h4>
+					<table class="ui definition table">
+						<tbody>
+						<tr>
+							<td class="five wide column">最大支持数量</td>
+							<td id="maxClient">-</td>
+						</tr>
+						<tr>
+							<td>当前连接数量</td>
+							<td id="client">-</td>
+						</tr>
+						</tbody>
+					</table>
+					<h4 class="ui horizontal divider header">
+						内存
+					</h4>
+					<table class="ui definition table">
+						<tbody>
+						<tr>
+							<td class="five wide column">当前用量</td>
+							<td id="userdMemory">-</td>
+						</tr>
+						<tr>
+							<td>系统分配</td>
+							<td id="userdMemoryRss">-</td>
+						</tr>
+						<tr>
+							<td>峰值消耗</td>
+							<td id="userdMemoryPeak">-</td>
+						</tr>
+						<tr>
+							<td>最大内存</td>
+							<td id="maxMemory">-</td>
+						</tr>
+						</tbody>
+					</table>
+					<h4 class="ui horizontal divider header">
+						统计
+					</h4>
+					<table class="ui definition table">
+						<tbody>
+						<tr>
+							<td class="five wide column">命中率</td>
+							<td id="hitRate">-</td>
+						</tr>
+						<tr>
+							<td>命中次数</td>
+							<td id="keyspaceHits">-</td>
+						</tr>
+						<tr>
+							<td>miss次数</td>
+							<td id="keyspaceMisses">-</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+
   </div>
+
+
+
 
 </div>	
 
@@ -234,6 +332,7 @@
 						$("#server").text($choice.attr("data-server").toUpperCase());
 						$("#connect").text($choice.attr("data-host"));
 						localStorage.setItem("server",$choice.attr("data-server"));
+						loadinfo();
 					}
 				},
 			});
@@ -257,6 +356,7 @@
 							$("#serverlist").append('<a class="item" data-server="'+n.serverName+'" data-host="'+n.host+'" >'+n.serverName.toUpperCase()+'</a>');
 							if(server!=null&&server!=''&&server==n.serverName){
 								$("#server").text(server.toUpperCase());
+								loadinfo();
 							}
 						});
 						$("#serverlist").append('<a class="item " data-server="0" id="addserver" style="background:#21ba45 !important;color:#fff !important;">新增实例</a>');
@@ -266,7 +366,38 @@
 				}
 			});
 		}
-		
+
+
+		function loadinfo(){
+			var server=$("#server").text();
+			var data={};
+			data["server"]=server;
+			$.ajax({
+				type: 'post',
+				url: "/redis/info",
+				dataType:'json',
+				contentType: "application/json;charset=UTF-8",
+				data:JSON.stringify(data),
+				success:function(data){
+					if(data.ok){
+						$("#version").text(data.data.version);
+						$("#mode").text(data.data.mode);
+						$("#os").text(data.data.os);
+						$("#uptime").text(data.data.uptime);
+						$("#client").text(data.data.client);
+						$("#maxClient").text(data.data.maxClient);
+						$("#userdMemory").text(data.data.userdMemory);
+						$("#userdMemoryRss").text(data.data.userdMemoryRss);
+						$("#userdMemoryPeak").text(data.data.userdMemoryPeak);
+						$("#maxMemory").text(data.data.maxMemory);
+						$("#systemMemory").text(data.data.systemMemory);
+						$("#keyspaceHits").text(data.data.keyspaceHits);
+						$("#keyspaceMisses").text(data.data.keyspaceMisses);
+						$("#hitRate").text(data.data.hitRate);
+					}
+				}
+			});
+		}
 		
 		function keybtn(){
 			$(".menu>").on("click","#addserver",function (){

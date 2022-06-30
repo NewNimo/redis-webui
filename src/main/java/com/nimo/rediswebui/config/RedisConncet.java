@@ -5,7 +5,6 @@ import cn.hutool.core.util.StrUtil;
 import com.nimo.rediswebui.entity.redis.RedisResult;
 import com.nimo.rediswebui.utils.SerializeUtils;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -13,11 +12,11 @@ import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
+import redis.clients.jedis.resps.Slowlog;
 import redis.clients.jedis.resps.Tuple;
 
 import java.net.SocketTimeoutException;
 import java.time.Duration;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -531,6 +530,23 @@ public class RedisConncet {
 
 	public String lset(String key, String value, int index) {
 		return getJedis().lset(key, index, value);
+	}
+
+
+	public String info(String section) {
+		return getJedis().info(section);
+	}
+
+	/***
+	 * 慢日志
+	 * @return
+	 */
+	public List<Slowlog> slowlog() {
+		if(getJedis().slowlogLen()>0){
+			return getJedis().slowlogGet();
+		}else{
+			return Collections.emptyList();
+		}
 	}
 
 

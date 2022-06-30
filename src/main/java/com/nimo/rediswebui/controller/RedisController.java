@@ -5,6 +5,7 @@ import com.nimo.rediswebui.exception.Result;
 import com.nimo.rediswebui.manager.RedisCahcheManager;
 import com.nimo.rediswebui.req.*;
 import com.nimo.rediswebui.rsp.ConnectInfo;
+import com.nimo.rediswebui.rsp.InfoRsp;
 import com.nimo.rediswebui.rsp.MemberRsp;
 import com.nimo.rediswebui.rsp.keyRsp;
 import com.nimo.rediswebui.service.RedisService;
@@ -137,6 +138,12 @@ public class RedisController {
     public Result<String> listMemberSet(@RequestBody ListMemberReq req) {
         String rsp=RedisCahcheManager.inst().listSetMember(req.getKey(),req.getMember(),req.getServer(),req.getIndex());
         return Result.ok(rsp);
+    }
+
+
+    @PostMapping(value = "/info")
+    public Result<InfoRsp> listMemberSet(@RequestBody InfoReq req) {
+        return Result.ok(RedisCahcheManager.inst().info(req.getServer()));
     }
 
 }

@@ -3,6 +3,7 @@ package com.nimo.rediswebui.manager;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.nimo.rediswebui.config.RedisConncet;
 import com.nimo.rediswebui.config.RedisServerConfig;
 import com.nimo.rediswebui.entity.ServerInfo;
@@ -12,13 +13,21 @@ import com.nimo.rediswebui.entity.redis.RedisResult;
 import com.nimo.rediswebui.exception.BusinessException;
 import com.nimo.rediswebui.exception.Code;
 import com.nimo.rediswebui.rsp.ConnectInfo;
+import com.nimo.rediswebui.rsp.InfoRsp;
 import com.nimo.rediswebui.rsp.MemberRsp;
 import com.nimo.rediswebui.rsp.keyRsp;
+import com.nimo.rediswebui.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.resps.Tuple;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,6 +62,14 @@ public  class RedisCahcheManager {
 	public static final String TypeZset = "zset";
 	public static final String TypeHash = "hash";
 	public static final String TypeList = "list";
+
+
+	public static final String MEMORY = "memory";//内存
+	public static final String STATS = "stats";//统计
+	public static final String SERVER = "server";
+	public static final String CLIENTS = "clients";
+	public static final String COMMANDSTATS  = "commandstats";
+
 
 
 
@@ -469,17 +486,75 @@ public  class RedisCahcheManager {
 		}
 	}
 
-
 	public  String listSetMember(String key,String member,String server,int index) {
-//		if(StringUtils.isBlank(member)) {
-//			throw new YzException(CODE.PARAMS_NULL);
-//		}
 		RedisConncet redis=getServer(server.toLowerCase());
 		if(!redis.exists(key)) {
 			throw new BusinessException("键不存在");
 		}
 		return redis.lset(key, member, index);
 	}
+
+
+	public InfoRsp info(String server) {
+		InfoRsp rsp=new InfoRsp();
+		RedisConncet redis=getServer(server.toLowerCase());
+		Map<String,String> info=parsing(redis.info(SERVER));
+		info.putAll(parsing(redis.info(CLIENTS)));
+		info.putAll(parsing(redis.info(MEMORY)));
+		info.putAll(parsing(redis.info(STATS)));
+		info.putAll(parsing(redis.info(COMMANDSTATS)));
+		log.info(JSONObject.toJSONString(info));
+		rsp.setVersion(info.get("redis_version"));
+		rsp.setMode(info.get("redis_mode"));
+		rsp.setOs(info.get("os"));
+		String t=TimeUtils.getTimeDes(Long.parseLong(info.get("uptime_in_seconds")));
+		rsp.setUptime(t);
+		rsp.setClient(Integer.parseInt(info.get("connected_clients")));
+		rsp.setMaxClient(Integer.parseInt(info.get("maxclients")==null?"0":info.get("maxclients")));
+		rsp.setUserdMemory(info.get("used_memory_human"));
+		rsp.setUserdMemoryRss(info.get("used_memory_rss_human"));
+		rsp.setUserdMemoryPeak(info.get("used_memory_peak_human"));
+		rsp.setSystemMemory(info.get("total_system_memory_human"));
+		if(Integer.parseInt(info.get("maxmemory"))>0){
+			rsp.setMaxMemory(info.get("maxmemory_human"));
+		}else{
+			rsp.setMaxMemory("未设置");
+		}
+		rsp.setKeyspaceHits(Long.parseLong(info.get("keyspace_hits")));
+		rsp.setKeyspaceMisses(Long.parseLong(info.get("keyspace_misses")));
+		rsp.setHitRate("100%");
+		if(rsp.getKeyspaceMisses()>0){
+			double total=rsp.getKeyspaceHits() + rsp.getKeyspaceMisses();
+			double hitrate=  rsp.getKeyspaceHits()/total;
+			rsp.setHitRate(String.format("%.2f",hitrate*100)+"%");
+		}
+		return rsp;
+	}
+
+	private Map<String,String> parsing(String info){
+		Map<String,String> map=new HashMap<>();
+		if(StrUtil.isBlank(info)){
+			return map;
+		}
+		try {
+			BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(info.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
+			String line;
+			while ( (line = br.readLine()) != null ) {
+				if(StrUtil.isNotBlank(line)&& line.contains(":")){
+					String[] kv=line.split(":");
+					if(kv.length>1){
+						map.put(kv[0],kv[1]);
+					}else{
+						map.put(kv[0],"");
+					}
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return map;
+	}
+
 
 
 }
